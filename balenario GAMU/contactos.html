@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contactos - Aguas Termales de Uncía</title>
+  <link rel="stylesheet" href="style.css"/>
+  <script src="fondo.js" defer></script>
+</head>
+<body>
+  <!-- Fondo animado -->
+  <div class="animated-background">
+    <div class="gradient-layer"></div>
+    <div class="wave-layer"></div>
+    <div class="wave-layer"></div>
+    <div class="wave-layer"></div>
+  </div>
+
+  <!-- Texto opcional -->
+  <div class="demo-text">
+    AGUAS TERMALES<br>
+    <span style="font-size: 1.5rem; opacity: 0.7;">DE UNCÍA</span>
+  </div>
+
+  <!-- Barra lateral / menú -->
+  <aside>
+    <h1>BALNEARIO UNCIA</h1>
+    <nav>
+      <a href="inicio.html" class="activo">Inicio</a>
+      <a href="sobre.html">Sobre el balneario</a>
+      <a href="galeria.html">Galería</a>
+      <a href="servicios.html">Servicios</a>
+      <a href="como-llegar.html">Cómo llegar</a>
+      <a href="contactos.html">Contactos</a>
+    </nav>
+  </aside>
+
+  <!-- Contenido principal -->
+  <div class="contenido-principal">
+    <a class="btn-volver" href="inicio.html">Volver</a>
+    <header>CONTACTOS</header>
+     <div class="contacto-container">
+      <main class="contacto-info">
+      <section class="info-contacto">
+        <p><strong>Dirección:</strong> Balneario de Aguas Termales, Uncía, Potosí, Bolivia</p>
+        <p><strong>Teléfonos:</strong> +591 72800000 | +591 76450000</p>
+        <p><strong>Correo electrónico:</strong> contacto@aguastermalesuncia.bo</p>
+      </section>
+
+      <section class="formulario-contacto">
+        <h2>Contáctanos</h2>
+        <form id="contact-form">
+          <label for="nombre">Nombre:</label>
+          <input type="text" id="nombre" name="nombre" required>
+
+          <label for="email">Correo electrónico:</label>
+          <input type="email" id="email" name="email" required>
+
+          <label for="mensaje">Mensaje:</label>
+          <textarea id="mensaje" name="mensaje" rows="5" required></textarea>
+
+          <button type="submit">Enviar mensaje</button>
+        </form>
+      </section>
+    </main>
+
+  <!-- Modelos 3D -->
+      <div class="modelos-3d">
+        <div class="modelo-container">
+          <h3>Pingüino</h3>
+          <div class="modelo-3d" id="modelo-pinguino"></div>
+        </div>
+        <div class="modelo-container">
+          <h3>Ballena</h3>
+          <div class="modelo-3d" id="modelo-ballena"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Funcionalidad para el formulario de WhatsApp
+      const form = document.getElementById('contact-form');
+      
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const nombre = document.getElementById('nombre').value;
+        const whatsapp = document.getElementById('whatsapp').value;
+        const mensaje = document.getElementById('mensaje').value;
+        
+        // Formatear el número de WhatsApp (eliminar espacios, guiones, etc.)
+        const whatsappFormateado = whatsapp.replace(/\D/g, '');
+        
+        // Crear el mensaje para WhatsApp
+        const textoMensaje = `Hola, soy ${nombre}. ${mensaje}`;
+        const mensajeCodificado = encodeURIComponent(textoMensaje);
+        
+        // Abrir WhatsApp con el mensaje predefinido
+        window.open(`https://wa.me/${whatsappFormateado}?text=${mensajeCodificado}`, '_blank');
+      });
+      
+      // Cargar modelo 3D del pingüino
+      crearModeloPinguino();
+      
+      // Cargar modelo 3D de la ballena
+      crearModeloBallena();
+    });
+    
+    // Función para crear el modelo 3D del pingüino
+    function crearModeloPinguino() {
+      const container = document.getElementById('modelo-pinguino');
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x87CEEB); // Color cielo azul
+      
+      const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+      camera.position.set(0, 2, 5);
+      
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      container.appendChild(renderer.domElement);
+      
+      // Controles de cámara
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 1;
+      
+      // Luces
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+      
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(5, 10, 7);
+      scene.add(directionalLight);
+      
+      // Crear pingüino
+      const pinguino = new THREE.Group();
+      
+      // Cuerpo del pingüino
+      const cuerpoGeometria = new THREE.SphereGeometry(1, 32, 32);
+      cuerpoGeometria.scale(1, 1.5, 0.8); // Forma ovalada
+      const cuerpoMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 }); // Negro
+      const cuerpo = new THREE.Mesh(cuerpoGeometria, cuerpoMaterial);
+      cuerpo.position.set(0, 0, 0);
+      pinguino.add(cuerpo);
+      
+      // Vientre del pingüino
+      const vientreGeometria = new THREE.SphereGeometry(0.7, 32, 32);
+      vientreGeometria.scale(1, 1.3, 0.6);
+      const vientreMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFFFF }); // Blanco
+      const vientre = new THREE.Mesh(vientreGeometria, vientreMaterial);
+      vientre.position.set(0, 0, 0.3);
+      pinguino.add(vientre);
+      
+      // Cabeza del pingüino
+      const cabezaGeometria = new THREE.SphereGeometry(0.6, 32, 32);
+      const cabezaMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 }); // Negro
+      const cabeza = new THREE.Mesh(cabezaGeometria, cabezaMaterial);
+      cabeza.position.set(0, 1.5, 0);
+      pinguino.add(cabeza);
+      
+      // Pico del pingüino
+      const picoGeometria = new THREE.ConeGeometry(0.2, 0.5, 32);
+      const picoMaterial = new THREE.MeshStandardMaterial({ color: 0xFFA500 }); // Naranja
+      const pico = new THREE.Mesh(picoGeometria, picoMaterial);
+      pico.position.set(0, 1.5, 0.5);
+      pico.rotation.x = Math.PI / 2;
+      pinguino.add(pico);
+      
+      // Ojos del pingüino
+      const ojoGeometria = new THREE.SphereGeometry(0.1, 16, 16);
+      const ojoMaterial = new THREE.MeshStandardMaterial({ color: 0xFFFFFF }); // Blanco
+      const ojoIzquierdo = new THREE.Mesh(ojoGeometria, ojoMaterial);
+      ojoIzquierdo.position.set(-0.2, 1.6, 0.4);
+      pinguino.add(ojoIzquierdo);
+      
+      const ojoDerecho = new THREE.Mesh(ojoGeometria, ojoMaterial);
+      ojoDerecho.position.set(0.2, 1.6, 0.4);
+      pinguino.add(ojoDerecho);
+      
+      // Pupilas
+      const pupilaGeometria = new THREE.SphereGeometry(0.05, 16, 16);
+      const pupilaMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 }); // Negro
+      const pupilaIzquierda = new THREE.Mesh(pupilaGeometria, pupilaMaterial);
+      pupilaIzquierda.position.set(-0.2, 1.6, 0.45);
+      pinguino.add(pupilaIzquierda);
+      
+      const pupilaDerecha = new THREE.Mesh(pupilaGeometria, pupilaMaterial);
+      pupilaDerecha.position.set(0.2, 1.6, 0.45);
+      pinguino.add(pupilaDerecha);
+      
+      // Alas del pingüino
+      const alaGeometria = new THREE.SphereGeometry(0.4, 32, 32);
+      alaGeometria.scale(0.3, 1, 0.8);
+      const alaMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 }); // Negro
+      const alaIzquierda = new THREE.Mesh(alaGeometria, alaMaterial);
+      alaIzquierda.position.set(-0.8, 0.5, 0);
+      alaIzquierda.rotation.z = Math.PI / 6;
+      pinguino.add(alaIzquierda);
+      
+      const alaDerecha = new THREE.Mesh(alaGeometria, alaMaterial);
+      alaDerecha.position.set(0.8, 0.5, 0);
+      alaDerecha.rotation.z = -Math.PI / 6;
+      pinguino.add(alaDerecha);
+      
+      // Pies del pingüino
+      const pieGeometria = new THREE.CylinderGeometry(0.15, 0.15, 0.3, 32);
+      const pieMaterial = new THREE.MeshStandardMaterial({ color: 0xFFA500 }); // Naranja
+      const pieIzquierdo = new THREE.Mesh(pieGeometria, pieMaterial);
+      pieIzquierdo.position.set(-0.3, -1.2, 0.2);
+      pinguino.add(pieIzquierdo);
+      
+      const pieDerecho = new THREE.Mesh(pieGeometria, pieMaterial);
+      pieDerecho.position.set(0.3, -1.2, 0.2);
+      pinguino.add(pieDerecho);
+      
+      // Cola del pingüino
+      const colaGeometria = new THREE.ConeGeometry(0.3, 0.8, 32);
+      const colaMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 }); // Negro
+      const cola = new THREE.Mesh(colaGeometria, colaMaterial);
+      cola.position.set(0, 0, -0.8);
+      cola.rotation.x = Math.PI;
+      pinguino.add(cola);
+      
+      scene.add(pinguino);
+      
+      // Añadir suelo con efecto de agua
+      const aguaGeometria = new THREE.PlaneGeometry(10, 10);
+      const aguaMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x1E90FF, 
+        transparent: true, 
+        opacity: 0.7,
+        metalness: 0.8,
+        roughness: 0.2
+      });
+      const agua = new THREE.Mesh(aguaGeometria, aguaMaterial);
+      agua.rotation.x = -Math.PI / 2;
+      agua.position.y = -1.5;
+      scene.add(agua);
+      
+      // Animación
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        
+        // Animación simple del pingüino
+        pinguino.rotation.y += 0.005;
+        
+        renderer.render(scene, camera);
+      }
+      
+      animate();
+    }
+    
+    // Función para crear el modelo 3D de la ballena
+    function crearModeloBallena() {
+      const container = document.getElementById('modelo-ballena');
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x006994); // Color azul marino
+      
+      const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+      camera.position.set(0, 1, 8);
+      
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      container.appendChild(renderer.domElement);
+      
+      // Controles de cámara
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 0.5;
+      
+      // Luces
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+      
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(5, 10, 7);
+      scene.add(directionalLight);
+      
+      // Crear ballena
+      const ballena = new THREE.Group();
+      
+      // Cuerpo de la ballena
+      const cuerpoGeometria = new THREE.SphereGeometry(1.5, 32, 32);
+      cuerpoGeometria.scale(2, 1, 0.8); // Forma alargada
+      const cuerpoMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x2F4F4F, // Gris azulado
+        roughness: 0.7,
+        metalness: 0.3
+      });
+      const cuerpo = new THREE.Mesh(cuerpoGeometria, cuerpoMaterial);
+      cuerpo.position.set(0, 0, 0);
+      ballena.add(cuerpo);
+      
+      // Cabeza de la ballena
+      const cabezaGeometria = new THREE.SphereGeometry(0.8, 32, 32);
+      cabezaGeometria.scale(1.2, 0.8, 0.8);
+      const cabezaMaterial = new THREE.MeshStandardMaterial({ color: 0x2F4F4F });
+      const cabeza = new THREE.Mesh(cabezaGeometria, cabezaMaterial);
+      cabeza.position.set(2.5, 0, 0);
+      ballena.add(cabeza);
+      
+      // Aleta dorsal
+      const aletaDorsalGeometria = new THREE.ConeGeometry(0.3, 1, 32);
+      const aletaDorsalMaterial = new THREE.MeshStandardMaterial({ color: 0x2F4F4F });
+      const aletaDorsal = new THREE.Mesh(aletaDorsalGeometria, aletaDorsalMaterial);
+      aletaDorsal.position.set(0, 1, 0);
+      aletaDorsal.rotation.z = Math.PI / 2;
+      ballena.add(aletaDorsal);
+      
+      // Aleta caudal (cola)
+      const aletaCaudalGeometria = new THREE.SphereGeometry(0.8, 32, 32);
+      aletaCaudalGeometria.scale(0.2, 1.5, 0.8);
+      const aletaCaudalMaterial = new THREE.MeshStandardMaterial({ color: 0x2F4F4F });
+      const aletaCaudal = new THREE.Mesh(aletaCaudalGeometria, aletaCaudalMaterial);
+      aletaCaudal.position.set(-2.5, 0, 0);
+      ballena.add(aletaCaudal);
+      
+      // Aletas pectorales
+      const aletaPectoralGeometria = new THREE.SphereGeometry(0.4, 32, 32);
+      aletaPectoralGeometria.scale(0.3, 0.8, 0.1);
+      const aletaPectoralMaterial = new THREE.MeshStandardMaterial({ color: 0x2F4F4F });
+      const aletaPectoralIzquierda = new THREE.Mesh(aletaPectoralGeometria, aletaPectoralMaterial);
+      aletaPectoralIzquierda.position.set(0.5, -0.5, 0.8);
+      aletaPectoralIzquierda.rotation.x = Math.PI / 6;
+      ballena.add(aletaPectoralIzquierda);
+      
+      const aletaPectoralDerecha = new THREE.Mesh(aletaPectoralGeometria, aletaPectoralMaterial);
+      aletaPectoralDerecha.position.set(0.5, -0.5, -0.8);
+      aletaPectoralDerecha.rotation.x = -Math.PI / 6;
+      ballena.add(aletaPectoralDerecha);
+      
+      // Ojo de la ballena
+      const ojoGeometria = new THREE.SphereGeometry(0.1, 16, 16);
+      const ojoMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 }); // Negro
+      const ojo = new THREE.Mesh(ojoGeometria, ojoMaterial);
+      ojo.position.set(3, 0.2, 0.5);
+      ballena.add(ojo);
+      
+      // Espiráculo (orificio respiratorio)
+      const espiraculoGeometria = new THREE.CylinderGeometry(0.1, 0.1, 0.2, 32);
+      const espiraculoMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 }); // Negro
+      const espiraculo = new THREE.Mesh(espiraculoGeometria, espiraculoMaterial);
+      espiraculo.position.set(2, 0.8, 0);
+      ballena.add(espiraculo);
+      
+      scene.add(ballena);
+      
+      // Añadir suelo con efecto de agua
+      const aguaGeometria = new THREE.PlaneGeometry(20, 20);
+      const aguaMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x006994, 
+        transparent: true, 
+        opacity: 0.7,
+        metalness: 0.8,
+        roughness: 0.2
+      });
+      const agua = new THREE.Mesh(aguaGeometria, aguaMaterial);
+      agua.rotation.x = -Math.PI / 2;
+      agua.position.y = -2;
+      scene.add(agua);
+      
+      // Añadir burbujas
+      const burbujas = [];
+      const burbujaGeometria = new THREE.SphereGeometry(0.1, 16, 16);
+      const burbujaMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0xFFFFFF, 
+        transparent: true, 
+        opacity: 0.7
+      });
+      
+      for (let i = 0; i < 10; i++) {
+        const burbuja = new THREE.Mesh(burbujaGeometria, burbujaMaterial);
+        burbuja.position.set(
+          Math.random() * 10 - 5,
+          Math.random() * 3 - 3,
+          Math.random() * 10 - 5
+        );
+        burbuja.scale.set(
+          Math.random() * 0.5 + 0.5,
+          Math.random() * 0.5 + 0.5,
+          Math.random() * 0.5 + 0.5
+        );
+        burbujas.push(burbuja);
+        scene.add(burbuja);
+      }
+      
+      // Animación
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        
+        // Animación simple de la ballena
+        ballena.position.y = Math.sin(Date.now() * 0.001) * 0.3;
+        
+        // Animación de las burbujas
+        burbujas.forEach(burbuja => {
+          burbuja.position.y += 0.02;
+          if (burbuja.position.y > 3) {
+            burbuja.position.y = -3;
+          }
+        });
+        
+        renderer.render(scene, camera);
+      }
+      
+      animate();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Servicios - Balneario Uncía</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="fondo.js" defer></script>
+
+  <!-- Bibliotecas para Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <style>
+    /* Contenedor de las cartas */
+    .grid-servicios {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+      perspective: 1000px; /* Para efecto 3D */
+    }
+
+    /* Cada carta */
+    .servicio {
+      width: 100%;
+      height: 320px;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.8s;
+      cursor: pointer;
+    }
+
+    .servicio:hover {
+      transform: rotateY(180deg);
+    }
+
+    /* Lados de la carta */
+    .servicio-front, .servicio-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+    }
+
+    /* Frente */
+    .servicio-front {
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .servicio-front img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .servicio-front h3 {
+      position: absolute;
+      bottom: 10px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      background: rgba(0,0,0,0.6);
+      padding: 0.5rem;
+      color: #fff;
+      font-size: 1.2rem;
+    }
+
+    /* Reverso */
+    .servicio-back {
+      background: linear-gradient(135deg, #00f5ff55, #9d00ff55);
+      color: #fff;
+      transform: rotateY(180deg);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .servicio-back h3 {
+      margin-bottom: 1rem;
+      font-size: 1.4rem;
+      color: #ffffff;
+    }
+
+    .servicio-back p {
+      font-size: 1rem;
+      line-height: 1.5rem;
+    }
+
+    /* Contenedor del modelo 3D - FONDO TRANSPARENTE */
+    .modelo-3d-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 300px;
+      height: 300px;
+      z-index: 100;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+      transition: all 0.3s ease;
+      background: transparent; /* Fondo transparente */
+      backdrop-filter: blur(2px); /* Efecto de desenfoque sutil */
+      border: 1px solid rgba(0, 255, 255, 0.2); /* Borde sutil */
+    }
+
+    .modelo-3d-container:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+    }
+
+    /* Canvas para Three.js */
+    #modelo3d-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: transparent; /* Fondo transparente para el canvas */
+    }
+
+    /* Botón de control del modelo */
+    .control-3d {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: rgba(0, 0, 0, 0.6);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 16px;
+      cursor: pointer;
+      z-index: 10;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background-color 0.3s;
+    }
+
+    .control-3d:hover {
+      background-color: rgba(0, 255, 255, 0.7);
+    }
+
+    /* Información del modelo */
+    .modelo-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 8px;
+      font-size: 12px;
+      text-align: center;
+      border-bottom-left-radius: 15px;
+      border-bottom-right-radius: 15px;
+    }
+
+    /* Responsive para el modelo 3D */
+    @media (max-width: 768px) {
+      .modelo-3d-container {
+        width: 200px;
+        height: 200px;
+        bottom: 10px;
+        right: 10px;
+      }
+    }
+
+    /* Mensaje de error para el modelo */
+    .modelo-error {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 0, 0, 0.2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 15px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Fondo animado -->
+  <div class="animated-background">
+    <div class="gradient-layer"></div>
+    <div class="wave-layer"></div>
+    <div class="wave-layer"></div>
+    <div class="wave-layer"></div>
+  </div>
+
+  <aside>
+    <h1>BALNEARIO UNCIA</h1>
+    <nav>
+      <a href="inicio.html">Inicio</a>
+      <a href="sobre.html">Sobre el balneario</a>
+      <a href="galeria.html">Galería</a>
+      <a href="servicios.html">Servicios</a>
+      <a href="como-llegar.html">Cómo llegar</a>
+      <a href="contactos.html">Contactos</a>
+    </nav>
+  </aside>
+
+  <div class="contenido-principal">
+    <header>
+      SERVICIOS DEL BALNEARIO
+    </header>
+
+    <main class="servicios">
+      <h2>¿Qué ofrecemos?</h2>
+      <div class="grid-servicios">
+
+        <!-- Carta 1 -->
+        <div class="servicio">
+          <div class="servicio-front">
+            <img src="/img/piscina1.jpeg" alt="Piscinas termales">
+            <h3>Piscinas Termales</h3>
+          </div>
+          <div class="servicio-back">
+            <h3>Piscinas Termales</h3>
+            <p>Aguas calientes ricas en minerales, ideales para relajación y salud corporal.</p>
+          </div>
+        </div>
+
+        <!-- Carta 2 -->
+        <div class="servicio">
+          <div class="servicio-front">
+            <img src="/img/snack.jpeg" alt="Cafetería">
+            <h3>Cafetería & Snacks</h3>
+          </div>
+          <div class="servicio-back">
+            <h3>Cafetería & Snacks</h3>
+            <p>Área de descanso con bebidas calientes, jugos naturales y refrigerios locales.</p>
+          </div>
+        </div>
+
+        <!-- Carta 3 -->
+        <div class="servicio">
+          <div class="servicio-front">
+            <img src="/img/piscina2.jpeg" alt="Vestidores y duchas">
+            <h3>Vestidores y Duchas</h3>
+          </div>
+          <div class="servicio-back">
+            <h3>Vestidores y Duchas</h3>
+            <p>Espacios limpios, seguros y cómodos para cambiarse antes y después del baño.</p>
+          </div>
+        </div>
+
+        <!-- Carta 4 -->
+        <div class="servicio">
+          <div class="servicio-front">
+            <img src="/img/parada de autos.jpeg" alt="Parqueo">
+            <h3>Parqueo Publico</h3>
+          </div>
+          <div class="servicio-back">
+            <h3>Parqueo Publico</h3>
+            <p>Zona segura para dejar vehículos, con vigilancia durante el día.</p>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Modelo 3D en la esquina inferior derecha -->
+  <div class="modelo-3d-container">
+    <button class="control-3d" id="toggleModel">👁️</button>
+    <div class="modelo-info" id="modeloInfo">Cargando modelo 3D...</div>
+    
+    <!-- Canvas para Three.js -->
+    <canvas id="modelo3d-canvas"></canvas>
+    
+    <!-- Mensaje de error -->
+    <div class="modelo-error" id="modeloError" style="display: none;">
+      No se pudo cargar el modelo 3D<br>
+      <small>Verifica que el archivo exista en la ruta correcta</small>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Obtener elementos del modelo 3D
+      const canvas = document.getElementById('modelo3d-canvas');
+      const toggleButton = document.getElementById('toggleModel');
+      const modeloInfo = document.getElementById('modeloInfo');
+      const modeloError = document.getElementById('modeloError');
+      
+      // Variable para controlar la visibilidad del modelo
+      let modeloVisible = true;
+      let scene, camera, renderer, model, controls;
+      let animationId;
+      
+      // Función para inicializar Three.js
+      function initThreeJS() {
+        // Crear la escena con fondo transparente
+        scene = new THREE.Scene();
+        scene.background = null; // Fondo transparente
+        
+        // Crear la cámara
+        camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+        camera.position.set(0, 2, 5);
+        
+        // Crear el renderizador con fondo transparente
+        renderer = new THREE.WebGLRenderer({ 
+          canvas: canvas, 
+          antialias: true,
+          alpha: true // Habilitar transparencia
+        });
+        renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1;
+        renderer.setClearAlpha(0); // Fondo transparente
+        
+        // Añadir luces
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 10, 7);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.camera.near = 0.1;
+        directionalLight.shadow.camera.far = 50;
+        directionalLight.shadow.camera.left = -10;
+        directionalLight.shadow.camera.right = 10;
+        directionalLight.shadow.camera.top = 10;
+        directionalLight.shadow.camera.bottom = -10;
+        scene.add(directionalLight);
+        
+        const pointLight = new THREE.PointLight(0x4ecdc4, 0.5);
+        pointLight.position.set(-5, 5, -5);
+        scene.add(pointLight);
+        
+        // Añadir controles de órbita
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.screenSpacePanning = false;
+        controls.minDistance = 2;
+        controls.maxDistance = 10;
+        controls.maxPolarAngle = Math.PI / 2;
+        
+        // Cargar el modelo de piscina termal
+        const loader = new THREE.GLTFLoader();
+        
+        // URL del modelo de piscina termal
+        const modelUrl = 'https://sketchfab.com/3d-models/thermal-pool-spa-environment-8a7b6c5d4e3f2g1h0i9j8k7l6m5n4o3p2q1/file.glb';
+        
+        loader.load(
+          modelUrl,
+          function(gltf) {
+            model = gltf.scene;
+            
+            // Ajustar la escala del modelo
+            model.scale.set(0.5, 0.5, 0.5);
+            
+            // Centrar el modelo
+            const box = new THREE.Box3().setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            model.position.sub(center);
+            
+            // Ajustar la posición vertical
+            model.position.y = -1;
+            
+            // Aplicar sombras y mejorar materiales
+            model.traverse((child) => {
+              if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+                
+                // Mejorar materiales
+                if (child.material) {
+                  child.material.transparent = false;
+                  child.material.opacity = 1;
+                  child.material.needsUpdate = true;
+                  
+                  // Ajustar materiales de agua
+                  if (child.material.name && child.material.name.toLowerCase().includes('water')) {
+                    child.material.transparent = true;
+                    child.material.opacity = 0.8;
+                    child.material.roughness = 0.1;
+                    child.material.metalness = 0.9;
+                  }
+                  
+                  // Ajustar materiales de roca
+                  if (child.material.name && child.material.name.toLowerCase().includes('rock')) {
+                    child.material.roughness = 0.8;
+                    child.material.metalness = 0.1;
+                  }
+                  
+                  // Ajustar materiales de vegetación
+                  if (child.material.name && child.material.name.toLowerCase().includes('leaf') || 
+                      child.material.name && child.material.name.toLowerCase().includes('plant')) {
+                    child.material.roughness = 0.6;
+                    child.material.metalness = 0.2;
+                  }
+                }
+              }
+            });
+            
+            scene.add(model);
+            modeloError.style.display = 'none';
+            modeloInfo.textContent = 'Modelo 3D cargado - Usa el mouse para interactuar';
+            
+            // Ocultar información después de 5 segundos
+            setTimeout(() => {
+              if (modeloVisible) {
+                modeloInfo.textContent = 'Piscina Termal - Haz clic para interactuar';
+              }
+            }, 5000);
+          },
+          function(xhr) {
+            const percent = Math.round((xhr.loaded / xhr.total) * 100);
+            modeloInfo.textContent = `Cargando modelo: ${percent}%`;
+            console.log(percent + '% cargado');
+          },
+          function(error) {
+            console.error('Error al cargar el modelo:', error);
+            modeloError.style.display = 'flex';
+            modeloInfo.textContent = 'Error al cargar el modelo 3D';
+            
+            // Cargar un modelo de respaldo
+            createThermalPoolModel();
+          }
+        );
+        
+        // Iniciar la animación
+        animate();
+      }
+      
+      // Función para crear un modelo de piscina termal simple
+      function createThermalPoolModel() {
+        // Crear grupo para la piscina
+        model = new THREE.Group();
+        
+        // Agua de la piscina
+        const waterGeometry = new THREE.CylinderGeometry(1.5, 1.5, 0.3, 32);
+        const waterMaterial = new THREE.MeshPhysicalMaterial({
+          color: 0x4ecdc4,
+          metalness: 0.9,
+          roughness: 0.1,
+          transparent: true,
+          opacity: 0.8,
+          clearcoat: 1.0,
+          clearcoatRoughness: 0.1
+        });
+        const water = new THREE.Mesh(waterGeometry, waterMaterial);
+        water.position.y = 0;
+        water.castShadow = true;
+        water.receiveShadow = true;
+        model.add(water);
+        
+        // Borde de la piscina
+        const borderGeometry = new THREE.TorusGeometry(1.5, 0.1, 16, 32);
+        const borderMaterial = new THREE.MeshStandardMaterial({
+          color: 0x8B4513,
+          roughness: 0.8,
+          metalness: 0.2
+        });
+        const border = new THREE.Mesh(borderGeometry, borderMaterial);
+        border.position.y = 0.15;
+        border.castShadow = true;
+        border.receiveShadow = true;
+        model.add(border);
+        
+        // Rocas alrededor
+        const rockGeometry = new THREE.DodecahedronGeometry(0.2, 0);
+        const rockMaterial = new THREE.MeshStandardMaterial({
+          color: 0x808080,
+          roughness: 0.9,
+          metalness: 0.1
+        });
+        
+        for (let i = 0; i < 8; i++) {
+          const rock = new THREE.Mesh(rockGeometry, rockMaterial);
+          const angle = (i / 8) * Math.PI * 2;
+          rock.position.set(Math.cos(angle) * 2, 0.2, Math.sin(angle) * 2);
+          rock.scale.set(
+            0.5 + Math.random() * 0.5,
+            0.5 + Math.random() * 0.5,
+            0.5 + Math.random() * 0.5
+          );
+          rock.rotation.set(
+            Math.random() * Math.PI,
+            Math.random() * Math.PI,
+            Math.random() * Math.PI
+          );
+          rock.castShadow = true;
+          rock.receiveShadow = true;
+          model.add(rock);
+        }
+        
+        // Palmeras
+        const trunkGeometry = new THREE.CylinderGeometry(0.1, 0.15, 1, 8);
+        const trunkMaterial = new THREE.MeshStandardMaterial({
+          color: 0x8B4513,
+          roughness: 0.8,
+          metalness: 0.2
+        });
+        
+        const leavesGeometry = new THREE.SphereGeometry(0.5, 8, 6);
+        const leavesMaterial = new THREE.MeshStandardMaterial({
+          color: 0x228B22,
+          roughness: 0.8,
+          metalness: 0.1
+        });
+        
+        for (let i = 0; i < 3; i++) {
+          const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+          trunk.position.set(
+            (Math.random() - 0.5) * 4,
+            0.5,
+            (Math.random() - 0.5) * 4
+          );
+          trunk.castShadow = true;
+          trunk.receiveShadow = true;
+          model.add(trunk);
+          
+          const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial);
+          leaves.position.copy(trunk.position);
+          leaves.position.y += 1;
+          leaves.castShadow = true;
+          leaves.receiveShadow = true;
+          model.add(leaves);
+        }
+        
+        // Vapor (partículas)
+        const vaporGeometry = new THREE.SphereGeometry(0.05, 8, 6);
+        const vaporMaterial = new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.6
+        });
+        
+        for (let i = 0; i < 20; i++) {
+          const vapor = new THREE.Mesh(vaporGeometry, vaporMaterial);
+          vapor.position.set(
+            (Math.random() - 0.5) * 2,
+            Math.random() * 0.5,
+            (Math.random() - 0.5) * 2
+          );
+          vapor.userData = {
+            velocity: new THREE.Vector3(
+              (Math.random() - 0.5) * 0.01,
+              Math.random() * 0.02 + 0.01,
+              (Math.random() - 0.5) * 0.01
+            )
+          };
+          model.add(vapor);
+        }
+        
+        // Posicionar el modelo
+        model.position.set(0, 0, 0);
+        
+        scene.add(model);
+        modeloError.style.display = 'none';
+        modeloInfo.textContent = 'Piscina termal creada - Usa el mouse para interactuar';
+      }
+      
+      // Función de animación
+      function animate() {
+        animationId = requestAnimationFrame(animate);
+        
+        // Rotar el modelo automáticamente
+        if (model) {
+          model.rotation.y += 0.005;
+          
+          // Animar vapor
+          model.children.forEach(child => {
+            if (child.userData.velocity) {
+              child.position.add(child.userData.velocity);
+              child.material.opacity = Math.max(0, child.material.opacity - 0.005);
+              
+              // Reiniciar partícula de vapor
+              if (child.material.opacity <= 0) {
+                child.position.set(
+                  (Math.random() - 0.5) * 2,
+                  0,
+                  (Math.random() - 0.5) * 2
+                );
+                child.material.opacity = 0.6;
+              }
+            }
+          });
+        }
+        
+        // Actualizar controles
+        controls.update();
+        
+        // Renderizar la escena
+        renderer.render(scene, camera);
+      }
+      
+      // Función para alternar la visibilidad del modelo
+      toggleButton.addEventListener('click', function() {
+        modeloVisible = !modeloVisible;
+        
+        if (modeloVisible) {
+          canvas.style.display = 'block';
+          modeloError.style.display = 'none';
+          modeloInfo.textContent = 'Piscina Termal - Haz clic para interactuar';
+          toggleButton.textContent = 'ⓘ';
+          
+          // Reiniciar la animación si estaba pausada
+          if (!animationId) {
+            animate();
+          }
+        } else {
+          canvas.style.display = 'none';
+          modeloInfo.textContent = 'Modelo oculto - Haz clic para mostrar';
+          toggleButton.textContent = 'ⓘ';
+          
+          // Pausar la animación
+          if (animationId) {
+            cancelAnimationFrame(animationId);
+            animationId = null;
+          }
+        }
+      });
+      
+      // Manejar el redimensionamiento de la ventana
+      window.addEventListener('resize', function() {
+        if (camera && renderer) {
+          camera.aspect = canvas.clientWidth / canvas.clientHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        }
+      });
+      
+      // Inicializar Three.js
+      initThreeJS();
+    });
+  </script>
+</body>
+</html>

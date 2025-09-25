@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Galería del Balneario</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="fondo.js" defer></script>
+  
+  <!-- Biblioteca para panorama 360° -->
+  <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
+  
+  <style>
+    /* Estilos para el carrusel automático */
+    .carrusel-container {
+      position: relative;
+      max-width: 80%;
+      margin: 2rem auto;
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    .carrusel-slide {
+      display: none;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    .carrusel-slide.active {
+      display: block;
+    }
+
+    .carrusel-slide img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+    }
+
+    .carrusel-slide p {
+      margin-top: 1rem;
+      font-style: italic;
+      color: #eee;
+      font-size: 1.2rem;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+    }
+
+    /* Indicadores */
+    .carrusel-indicadores {
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .indicador {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: rgba(255,255,255,0.5);
+      margin: 0 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .indicador.active {
+      background-color: #00f5ff;
+    }
+
+    /* Controles de navegación */
+    .carrusel-control {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: rgba(0,0,0,0.5);
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      border-radius: 50%;
+      z-index: 10;
+      transition: background-color 0.3s;
+    }
+
+    .carrusel-control:hover {
+      background-color: rgba(0,0,0,0.8);
+    }
+
+    .carrusel-control.prev {
+      left: 10px;
+    }
+
+    .carrusel-control.next {
+      right: 10px;
+    }
+
+    /* Contenedor de botones de panorama */
+    .panorama-buttons-container {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin: 2rem auto;
+      flex-wrap: wrap;
+      max-width: 90%;
+    }
+
+    /* Botones de panorama 360° */
+    .panorama-btn {
+      display: block;
+      padding: 12px 20px;
+      background: linear-gradient(45deg, #1f2829, #293b41);
+      color: #fff;
+      border: none;
+      border-radius: 30px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 150, 255, 0.4);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      flex: 1 1 calc(20% - 15px);
+      min-width: 150px;
+      max-width: 200px;
+    }
+
+    .panorama-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    .panorama-btn:hover::before {
+      left: 100%;
+    }
+
+    .panorama-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0, 150, 255, 0.6);
+      background: linear-gradient(45deg, #2f3739, rgb(56, 63, 63));
+    }
+
+    .panorama-btn:active {
+      transform: translateY(-1px);
+    }
+
+    /* Efectos específicos para cada botón */
+    .panorama-btn:nth-child(1) {
+      border-left: 4px solid #00ffff;
+    }
+
+    .panorama-btn:nth-child(2) {
+      border-left: 4px solid #ff6b6b;
+    }
+
+    .panorama-btn:nth-child(3) {
+      border-left: 4px solid #4ecdc4;
+    }
+
+    .panorama-btn:nth-child(4) {
+      border-left: 4px solid #ffd166;
+    }
+
+    .panorama-btn:nth-child(5) {
+      border-left: 4px solid #a663cc;
+    }
+
+    /* Modal para el panorama 360° */
+    .panorama-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.9);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .panorama-content {
+      position: relative;
+      width: 90%;
+      height: 80%;
+      max-width: 1200px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+      border: 2px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .panorama-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 1.5rem;
+      cursor: pointer;
+      z-index: 1001;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+
+    .panorama-close:hover {
+      background-color: rgba(255, 255, 255, 0.4);
+      transform: rotate(90deg);
+    }
+
+    /* Indicador de carga para panoramas */
+    .panorama-loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 50px;
+      height: 50px;
+      border: 5px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #00ffff;
+      animation: spin 1s ease-in-out infinite;
+      z-index: 1000;
+    }
+
+    @keyframes spin {
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* Animación de transición */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Fondo animado -->
+  <div class="animated-background">
+    <div class="gradient-layer"></div>
+    <div class="wave-layer"></div>
+    <div class="wave-layer"></div>
+    <div class="wave-layer"></div>
+  </div>
+  <aside>
+    <h1>BALNEARIO UNCIA</h1>
+    <nav>
+      <a href="inicio.html">Inicio</a>
+      <a href="sobre.html">Sobre el balneario</a>
+      <a href="galeria.html">Galería</a>
+      <a href="servicios.html">Servicios</a>
+      <a href="como-llegar.html">Cómo llegar</a>
+      <a href="contactos.html">Contactos</a>
+    </nav>
+  </aside>
+
+  <div class="contenido-principal">
+    <header>
+      GALERÍA DE VISITANTES
+    </header>
+
+    <main>
+      <!-- Carrusel automático -->
+      <div class="carrusel-container">
+        <!-- Control anterior -->
+        <button class="carrusel-control prev">&#10094;</button>
+        
+        <!-- Slides -->
+        <div class="carrusel-slide active">
+          <img src="/img/turismo2.jpeg" alt="Imagen 1">
+          <p>"Una experiencia inolvidable en aguas termales. ¡Volveré!"</p>
+        </div>
+        
+        <div class="carrusel-slide">
+          <img src="/img/parqueo.jpeg" alt="Imagen 2">
+          <p>"Relajación total. Perfecto para escapar del estrés."</p>
+        </div>
+        
+        <div class="carrusel-slide">
+          <img src="/img/parqueo1.jpeg" alt="Imagen 3">
+          <p>"Hermoso lugar rodeado de naturaleza y tranquilidad."</p>
+        </div>
+        
+        <div class="carrusel-slide">
+          <img src="/img/baños individuales.jpeg" alt="Imagen 4">
+          <p>"Muy recomendado para toda la familia."</p>
+        </div>
+        
+        <div class="carrusel-slide">
+          <img src="/img/sauna.jpeg" alt="Imagen 5">
+          <p>"Un paraíso escondido en el corazón de Potosí."</p>
+        </div>
+        
+        <div class="carrusel-slide">
+          <img src="/img/sauna1.jpeg" alt="Imagen 6">
+          <p>"Las aguas termales tienen un efecto mágico en el cuerpo."</p>
+        </div>
+        
+        <!-- Control siguiente -->
+        <button class="carrusel-control next">&#10095;</button>
+      </div>
+      
+      <!-- Indicadores -->
+      <div class="carrusel-indicadores">
+        <span class="indicador active" data-slide="0"></span>
+        <span class="indicador" data-slide="1"></span>
+        <span class="indicador" data-slide="2"></span>
+        <span class="indicador" data-slide="3"></span>
+        <span class="indicador" data-slide="4"></span>
+        <span class="indicador" data-slide="5"></span>
+      </div>
+      
+      <!-- Botones para ver los panoramas 360° -->
+      <div class="panorama-buttons-container">
+        <button class="panorama-btn" data-panorama="/panom/panorama1.jpg">Vista General</button>
+        <button class="panorama-btn" data-panorama="/panom/panorama2.jpg">Vista de Fuera</button>
+        <button class="panorama-btn" data-panorama="/panom/panorama3.jpg">Vista desde el Exterior</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal para el panorama 360° -->
+  <div class="panorama-modal" id="panoramaModal">
+    <div class="panorama-content">
+      <div class="panorama-loading" id="panoramaLoading"></div>
+      <button class="panorama-close" id="panoramaClose">&times;</button>
+      <div id="panorama" style="width:100%; height:100%;"></div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Obtener elementos del carrusel
+      const slides = document.querySelectorAll('.carrusel-slide');
+      const indicadores = document.querySelectorAll('.indicador');
+      const botonPrev = document.querySelector('.carrusel-control.prev');
+      const botonNext = document.querySelector('.carrusel-control.next');
+      
+      // Elementos del panorama 360°
+      const panoramaButtons = document.querySelectorAll('.panorama-btn');
+      const panoramaModal = document.getElementById('panoramaModal');
+      const panoramaClose = document.getElementById('panoramaClose');
+      const panoramaLoading = document.getElementById('panoramaLoading');
+      
+      let slideActual = 0;
+      const intervaloTiempo = 5000; // 5 segundos
+      let intervalo;
+      let viewer; // Variable para guardar la instancia del visor
+      
+      // Función para mostrar un slide específico
+      function mostrarSlide(indice) {
+        // Ocultar todos los slides
+        slides.forEach(slide => slide.classList.remove('active'));
+        indicadores.forEach(ind => ind.classList.remove('active'));
+        
+        // Mostrar el slide actual
+        slides[indice].classList.add('active');
+        indicadores[indice].classList.add('active');
+        
+        slideActual = indice;
+      }
+      
+      // Función para avanzar al siguiente slide
+      function siguienteSlide() {
+        slideActual = (slideActual + 1) % slides.length;
+        mostrarSlide(slideActual);
+      }
+      
+      // Función para retroceder al slide anterior
+      function anteriorSlide() {
+        slideActual = (slideActual - 1 + slides.length) % slides.length;
+        mostrarSlide(slideActual);
+      }
+      
+      // Iniciar el carrusel automático
+      function iniciarCarrusel() {
+        intervalo = setInterval(siguienteSlide, intervaloTiempo);
+      }
+      
+      // Detener el carrusel automático
+      function detenerCarrusel() {
+        clearInterval(intervalo);
+      }
+      
+      // Event listeners para los botones de control
+      botonPrev.addEventListener('click', function() {
+        anteriorSlide();
+        detenerCarrusel();
+        iniciarCarrusel(); // Reiniciar el carrusel después de la interacción manual
+      });
+      
+      botonNext.addEventListener('click', function() {
+        siguienteSlide();
+        detenerCarrusel();
+        iniciarCarrusel(); // Reiniciar el carrusel después de la interacción manual
+      });
+      
+      // Event listeners para los indicadores
+      indicadores.forEach(indicador => {
+        indicador.addEventListener('click', function() {
+          const indice = parseInt(this.getAttribute('data-slide'));
+          mostrarSlide(indice);
+          detenerCarrusel();
+          iniciarCarrusel(); // Reiniciar el carrusel después de la interacción manual
+        });
+      });
+      
+      // Pausar el carrusel cuando el mouse está sobre él
+      const carruselContainer = document.querySelector('.carrusel-container');
+      carruselContainer.addEventListener('mouseenter', detenerCarrusel);
+      carruselContainer.addEventListener('mouseleave', iniciarCarrusel);
+      
+      // Iniciar el carrusel automático al cargar la página
+      iniciarCarrusel();
+      
+      // Funcionalidad del panorama 360°
+      panoramaButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const imagePath = this.getAttribute('data-panorama');
+          panoramaModal.style.display = 'flex';
+          panoramaLoading.style.display = 'block'; // Mostrar indicador de carga
+          
+          // Si ya existe un visor, lo destruimos
+          if (viewer) {
+            viewer.destroy();
+          }
+          
+          // Inicializar el visor 360° con la imagen correspondiente
+          viewer = pannellum.viewer('panorama', {
+            "type": "equirectangular",
+            "panorama": imagePath,
+            "autoLoad": true,
+            "autoRotate": -2,
+            "autoRotateInactivityDelay": 100,
+            "compass": false,
+            "showZoomCtrl": true,
+            "showFullscreenCtrl": true,
+            "hotSpotDebug": false
+          });
+          
+          // Ocultar indicador cuando se carga el panorama
+          viewer.on('load', function() {
+            panoramaLoading.style.display = 'none';
+          });
+        });
+      });
+      
+      // Cerrar el modal del panorama 360°
+      panoramaClose.addEventListener('click', function() {
+        panoramaModal.style.display = 'none';
+        if (viewer) {
+          viewer.destroy();
+          viewer = null;
+        }
+      });
+      
+      // Cerrar el modal al hacer clic fuera del contenido
+      window.addEventListener('click', function(event) {
+        if (event.target === panoramaModal) {
+          panoramaModal.style.display = 'none';
+          if (viewer) {
+            viewer.destroy();
+            viewer = null;
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cómo llegar - Balneario Uncía</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="fondo.js" defer></script>
+   <!-- Carga del visor 3D Model Viewer (para el robot/avatar) -->
+  <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+  
+
+</head>
+<body>
+  <!-- Fondo animado -->
+  <div class="animated-background">
+    <div class="gradient-layer"></div>
+    <div class="wave-layer"></div>
+    <div class="wave-layer"></div>
+    <div class="wave-layer"></div>
+  </div>
+  <aside>
+    <h1>BALNEARIO UNCIA</h1>
+    <nav>
+      <a href="inicio.html">Inicio</a>
+      <a href="sobre.html">Sobre el balneario</a>
+      <a href="galeria.html">Galería</a>
+      <a href="servicios.html">Servicios</a>
+      <a href="como-llegar.html">Cómo llegar</a>
+      <a href="contactos.html">Contactos</a>
+    </nav>
+  </aside>
+
+  <div class="contenido-principal">
+    <header>
+      ¿CÓMO LLEGAR AL BALNEARIO?
+    </header>
+
+    <main class="como-llegar">
+      <h2>Ubicación y Acceso</h2>
+      <p>El Balneario de Aguas Termales se encuentra en las afueras del municipio de Uncía, en una zona tranquila rodeada de naturaleza.</p>
+      <!-- Layout de dos columnas: Asistente IA + Mapa -->
+    <div class="main-layout">
+        <!-- Avatar 3D del asistente (robot animado con Model Viewer) -->
+        <model-viewer class="ai-avatar"
+          src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb"
+          alt="ARIA - Asistente IA" auto-rotate camera-controls
+          background-color="transparent" shadow-intensity="0.5" autoplay>
+        </model-viewer>
+    </div>
+      <div class="mapa">
+        <iframe 
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3813.4090344874577!2d-66.57861!3d-18.51642!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x93ea0e0cfb3d02af%3A0x2d4b2912a6dc5dc1!2sUnc%C3%ADa%2C%20Potos%C3%AD!5e0!3m2!1ses-419!2sbo!4v1716741234567"
+          width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+      </div>
+
+      <section class="indicaciones">
+        <h3>Desde Llallagua</h3>
+        <p>Tomar la carretera hacia Uncía (20 minutos aprox.). Al llegar, seguir las señalizaciones hacia el balneario.</p>
+
+        <h3>Desde Potosí</h3>
+        <p>Viajar hacia Llallagua por la carretera Potosí-Oruro. Desde Llallagua, seguir rumbo a Uncía.</p>
+
+        <h3>Desde Oruro</h3>
+        <p>Seguir la ruta Oruro–Llallagua. Luego dirigirse hacia Uncía. El balneario está bien señalizado en la entrada del pueblo.</p>
+      </section>
+
+      <section class="info-extra">
+        <h3>Información adicional</h3>
+        <ul>
+          <li><strong>Horario de atención:</strong> 8:00 a 18:00</li>
+          <li><strong>Teléfono:</strong> +591 72800000</li>
+          <li><strong>Recomendaciones:</strong> Llevar traje de baño, toalla, y protegerse del sol.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
+
